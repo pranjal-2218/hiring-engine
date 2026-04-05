@@ -1,0 +1,84 @@
+version: "3.9"
+
+services:
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: hiring_engine
+      POSTGRES_USER: hiring_user
+      POSTGRES_PASSWORD: hiring_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hiring_user -d hiring_engine"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis (caching) ─────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+
+  # ── Backend (FastAPI) ───────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://hiring_user:hiring_pass@postgres:5432/hiring_engine
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: change-me-in-production-please
+      API_KEY: dev-api-key-12345
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
+      ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - model_artifacts:/app/ml/artifacts
+      - upload_data:/app/data/raw/uploads
+    restart: unless-stopped
+
+  # ── Frontend (Streamlit) ────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "8501:8501"
+    environment:
+      API_BASE_URL: http://backend:8000/api/v1
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # ── Model Training (one-shot job) ───────────────────────────────────────────
+  train:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    command: python ml/training/train_ranker.py
+    volumes:
+      - model_artifacts:/app/ml/artifacts
+      - ./data:/app/data
+    profiles:
+      - training   # only runs with: docker compose --profile training up train
+
+volumes:
+  postgres_data:
+  model_artifacts:
+  upload_data:

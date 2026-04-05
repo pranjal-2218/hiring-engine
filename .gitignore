@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Secrets
+.env
+*.env
+
+# ML Artifacts (large files)
+ml/artifacts/*.json
+ml/artifacts/*.pkl
+ml/artifacts/*.model
+
+# Data
+data/raw/uploads/
+data/processed/
+*.csv
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
