@@ -30,10 +30,18 @@ FEATURE_COLS = [
 
 XGB_PARAMS = dict(
     objective="rank:ndcg", eval_metric=["ndcg@5","ndcg@10"],
-    learning_rate=0.05, max_depth=6, min_child_weight=5,
-    subsample=0.8, colsample_bytree=0.8, n_estimators=500,
-    early_stopping_rounds=40, tree_method="hist", seed=42,
+    learning_rate=0.1, max_depth=6, min_child_weight=3,
+    subsample=0.8, colsample_bytree=0.8, n_estimators=100,
+    early_stopping_rounds=30, tree_method="hist", seed=42,
 )
+
+# ── Scoring weights (must match backend/core/config.py) ──────────────────────
+WEIGHT_SEMANTIC   = 0.25
+WEIGHT_ML_SCORE   = 0.45
+WEIGHT_SKILL_MATCH = 0.20
+WEIGHT_EXPERIENCE = 0.10
+THRESHOLD_STRONG  = 72
+THRESHOLD_CONSIDER = 48
 
 OUT = Path("ml/artifacts"); OUT.mkdir(parents=True, exist_ok=True)
 
@@ -44,7 +52,12 @@ def load_data() -> pd.DataFrame:
         logger.info(f"Loading {p}")
         return pd.read_csv(p)
     logger.info("Generating synthetic dataset …")
-    return generate_dataset(n_jds=150, candidates_per_jd=50)
+    df = generate_dataset(n_jds=150, candidates_per_jd=50)
+    # Persist for reproducibility
+    Path("data/synthetic").mkdir(parents=True, exist_ok=True)
+    df.to_csv(p, index=False)
+    logger.info(f"Saved synthetic dataset → {p}")
+    return df
 
 
 def split(df: pd.DataFrame):
@@ -69,7 +82,7 @@ def matrices(tr, va, scaler=None):
 
 def train(Xt, yt, gt, Xv, yv, gv):
     m = xgb.XGBRanker(**XGB_PARAMS)
-    m.fit(Xt, yt, group=gt, eval_set=[(Xv, yv)], verbose=50)
+    m.fit(Xt, yt, group=gt, eval_set=[(Xv, yv)], eval_group=[gv], verbose=50)
     logger.info(f"Best iteration: {m.best_iteration}")
     return m
 
@@ -107,6 +120,50 @@ def plot_importance(m):
     logger.info("Feature importance → ml/artifacts/feature_importance.png")
 
 
+def evaluate_accuracy(m, Xv, yv, va):
+    """Evaluate recommendation classification accuracy on validation set."""
+    from collections import Counter
+
+    scores = m.predict(Xv)
+    min_s, max_s = scores.min(), scores.max()
+    if max_s != min_s:
+        ml_scores = (scores - min_s) / (max_s - min_s)
+    else:
+        ml_scores = np.full(len(scores), 0.5)
+
+    true_recs = np.where(yv >= 3, "Strong Hire", np.where(yv == 2, "Consider", "Reject"))
+
+    raw_scores = (
+        WEIGHT_SEMANTIC * va["semantic_similarity"].values
+        + WEIGHT_ML_SCORE * ml_scores
+        + WEIGHT_SKILL_MATCH * va["skill_match_ratio"].values
+        + WEIGHT_EXPERIENCE * va["experience_match_score"].values
+    )
+    raw_scores = np.where(va["is_duplicate"].values == 1.0, 0.0, raw_scores)
+    raw_scores = np.where(va["keyword_stuffing_score"].values > 0.7, raw_scores * 0.7, raw_scores)
+    final_scores = np.round(np.minimum(100.0, raw_scores * 100), 2)
+
+    pred_recs = np.where(
+        va["mandatory_skill_coverage"].values < 0.5, "Reject",
+        np.where(final_scores >= THRESHOLD_STRONG, "Strong Hire",
+                 np.where(final_scores >= THRESHOLD_CONSIDER, "Consider", "Reject"))
+    )
+
+    accuracy = np.sum(pred_recs == true_recs) / len(true_recs)
+
+    logger.info("──── Recommendation Accuracy ────")
+    logger.info(f"  Accuracy: {accuracy:.4f}  ({np.sum(pred_recs == true_recs)}/{len(true_recs)})")
+
+    matches = Counter(zip(pred_recs, true_recs))
+    logger.info("  Confusion Matrix (Predicted → True):")
+    for cat in ["Strong Hire", "Consider", "Reject"]:
+        for true_cat in ["Strong Hire", "Consider", "Reject"]:
+            count = matches.get((cat, true_cat), 0)
+            logger.info(f"    {cat:12s} → {true_cat:12s}: {count}")
+
+    return accuracy
+
+
 def main():
     df = load_data()
     tr, va = split(df)
@@ -114,6 +171,8 @@ def main():
     Xt, yt, gt, Xv, yv, gv, scaler = matrices(tr, va)
     m = train(Xt, yt, gt, Xv, yv, gv)
     metrics = evaluate(m, Xv, va)
+    accuracy = evaluate_accuracy(m, Xv, yv, va)
+    metrics["recommendation_accuracy"] = round(accuracy, 4)
     m.save_model(str(OUT / "xgb_ranker.json"))
     with open(OUT / "feature_scaler.pkl", "wb") as f: pickle.dump(scaler, f)
     with open(OUT / "eval_metrics.json", "w") as f: json.dump(metrics, f, indent=2)

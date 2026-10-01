@@ -42,13 +42,13 @@ class CandidateRanker:
     MODEL_PARAMS = {
         "objective": "rank:ndcg",
         "eval_metric": "ndcg@10",
-        "learning_rate": 0.05,
+        "learning_rate": 0.1,
         "max_depth": 6,
-        "min_child_weight": 5,
+        "min_child_weight": 3,
         "subsample": 0.8,
         "colsample_bytree": 0.8,
-        "n_estimators": 500,
-        "early_stopping_rounds": 50,
+        "n_estimators": 100,
+        "early_stopping_rounds": 30,
         "tree_method": "hist",
         "device": "cpu",
         "seed": 42,
@@ -148,7 +148,7 @@ class CandidateRanker:
             return "Reject"
         if score >= 72:
             return "Strong Hire"
-        if score >= 50:
+        if score >= 48:
             return "Consider"
         return "Reject"
 
@@ -176,11 +176,13 @@ class CandidateRanker:
             X_val_s = instance.scaler.transform(X_val)
             eval_set = [(X_val_s, y_val)]
 
+        eval_group = [groups_val] if groups_val is not None else None
         ranker.fit(
             X_train_s,
             y_train,
             group=groups_train,
             eval_set=eval_set,
+            eval_group=eval_group,
             qid=None,
             verbose=50,
         )

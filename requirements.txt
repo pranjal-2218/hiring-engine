@@ -8,10 +8,10 @@ httpx==0.25.2
 
 # ─── NLP / Embeddings ────────────────────────────────────────────────────────
 sentence-transformers==2.2.2
-spacy==3.7.2
+spacy==3.8.2
 transformers==4.35.2
-torch==2.1.1
-en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.7.1/en_core_web_lg-3.7.1-py3-none-any.whl
+torch==2.2.2
+en-core-web-lg @ https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl
 
 # ─── PDF Parsing ─────────────────────────────────────────────────────────────
 PyMuPDF==1.23.6
@@ -43,7 +43,7 @@ tiktoken==0.5.2
 
 # ─── Similarity / LSH ────────────────────────────────────────────────────────
 datasketch==1.6.4      # MinHash LSH for duplicate detection
-faiss-cpu==1.7.4       # Fast vector similarity search
+faiss-cpu==1.8.0       # Fast vector similarity search
 
 # ─── Frontend ────────────────────────────────────────────────────────────────
 streamlit==1.28.2

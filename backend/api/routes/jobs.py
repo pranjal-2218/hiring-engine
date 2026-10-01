@@ -68,7 +68,6 @@ def get_jd_store() -> dict[UUID, ParsedJobDescription]:
 Ranking endpoint — the core of the system.
 """
 
-from __future__ import annotations
 
 from fastapi import APIRouter as _RankRouter, HTTPException as _HTTPException, Request
 

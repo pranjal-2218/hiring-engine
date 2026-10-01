@@ -56,9 +56,9 @@ class Settings(BaseSettings):
     SCALER_PATH: str = "ml/artifacts/feature_scaler.pkl"
 
     # ── Ranking Weights ───────────────────────────────────────────────────────
-    WEIGHT_SEMANTIC: float = 0.40
-    WEIGHT_ML_SCORE: float = 0.35
-    WEIGHT_SKILL_MATCH: float = 0.15
+    WEIGHT_SEMANTIC: float = 0.25
+    WEIGHT_ML_SCORE: float = 0.45
+    WEIGHT_SKILL_MATCH: float = 0.20
     WEIGHT_EXPERIENCE: float = 0.10
 
     # ── Upload ────────────────────────────────────────────────────────────────

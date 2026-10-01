@@ -15,20 +15,46 @@ def dcg_at_k(relevances: list[int], k: int) -> float:
     return sum((2**r - 1) / math.log2(i + 2) for i, r in enumerate(relevances[:k]))
 
 
-def ndcg_at_k(predicted: list[int], ideal: list[int], k: int) -> float:
-    """NDCG@K = DCG@K(predicted) / DCG@K(ideal). Returns 1.0 if all labels are 0."""
+def ndcg_at_k(predicted: list[int], ideal: list[int] | None = None, k: int | None = None) -> float:
+    """
+    NDCG@K = DCG@K(predicted) / DCG@K(ideal).
+
+    Supports all call styles:
+      ndcg_at_k(pred, ideal, k)      – original 3-arg positional form
+      ndcg_at_k(pred, ideal, k=K)    – positional ideal, keyword k
+      ndcg_at_k(pred, k=K)           – auto-compute ideal from predicted
+
+    Returns:
+        - 1.0 if ideal was explicitly passed and all labels are 0 (trivially perfect).
+        - 0.0 if ideal was auto-computed and all labels are 0 (nothing to rank).
+    """
+    predicted = list(predicted)
+    ideal_was_explicit = ideal is not None
+
+    if ideal is None:
+        ideal = sorted(predicted, reverse=True)
+    else:
+        ideal = list(ideal)
+
+    if k is None:
+        k = len(predicted)
+
     idcg = dcg_at_k(ideal, k)
-    return dcg_at_k(predicted, k) / idcg if idcg > 0 else 1.0
+    if idcg > 0:
+        return dcg_at_k(predicted, k) / idcg
+    return 1.0 if ideal_was_explicit else 0.0
 
 
 def precision_at_k(relevances: list[int], k: int, threshold: int = 1) -> float:
     """Fraction of top-K items with relevance >= threshold."""
+    relevances = list(relevances)
     top = relevances[:k]
-    return sum(1 for r in top if r >= threshold) / len(top) if top else 0.0
+    return sum(1 for r in top if r >= threshold) / len(top) if len(top) > 0 else 0.0
 
 
 def mean_reciprocal_rank(relevances: list[int], threshold: int = 1) -> float:
     """1 / rank of first relevant item. 0.0 if no relevant item found."""
+    relevances = list(relevances)
     for i, r in enumerate(relevances):
         if r >= threshold:
             return 1.0 / (i + 1)

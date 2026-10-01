@@ -88,6 +88,7 @@ app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytic
 
 
 @app.get("/health", tags=["System"])
+@app.get("/api/v1/health", tags=["System"])
 async def health_check():
     return {
         "status": "healthy",

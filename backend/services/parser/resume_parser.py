@@ -287,7 +287,7 @@ class ResumeParser:
         return None
 
     def _extract_year(self, text: str) -> Optional[int]:
-        matches = re.findall(r"\b(19|20)\d{2}\b", text)
+        matches = re.findall(r"\b(?:19|20)\d{2}\b", text)
         if matches:
             return int(matches[-1])  # graduation year = last year mentioned
         return None

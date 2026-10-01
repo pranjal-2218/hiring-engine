@@ -105,7 +105,6 @@ A resume is flagged if its keyword density z-score exceeds a threshold.
 Also detects: hidden text, tiny fonts, white-on-white text (via PDF metadata).
 """
 
-from __future__ import annotations
 
 import re
 import statistics
