@@ -117,8 +117,8 @@ hiring-engine/
 
 ## 🌐 Live Deployment (Cloud)
 
-- **Frontend (Streamlit Cloud):** `[https://hiring-engine.streamlit.app/]`
-- **Backend API (Render):** `[Insert Render URL Here]` / [Interactive Docs](`[https://hiring-engine-backend.onrender.com]`/docs)
+- **Frontend (Streamlit Cloud):** [https://hiring-engine.streamlit.app/](https://hiring-engine.streamlit.app/)
+- **Backend API (Render):** [https://hiring-engine-backend.onrender.com](https://hiring-engine-backend.onrender.com) / [Interactive Docs](https://hiring-engine-backend.onrender.com/docs)
 
 ## 🚀 Run Frontend Locally (Connecting to Cloud API)
 
@@ -132,7 +132,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 # 2. Run Streamlit with the API_URL environment variable
-API_URL="https://YOUR_RENDER_URL_HERE.onrender.com/api/v1" streamlit run frontend/app.py
+API_URL="https://hiring-engine-backend.onrender.com/api/v1" streamlit run frontend/app.py
 ```
 *(Your browser will open to `http://localhost:8501`. Any edits you make to the UI code will reflect instantly!)*
 
