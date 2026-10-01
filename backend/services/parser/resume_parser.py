@@ -29,7 +29,7 @@ from backend.models.resume import (
 
 # ── Load spaCy model once at import time ──────────────────────────────────────
 try:
-    NLP = spacy.load("en_core_web_lg")
+    NLP = spacy.load("en_core_web_sm")
 except OSError:
     logger.warning("en_core_web_lg not found, falling back to en_core_web_sm")
     NLP = spacy.load("en_core_web_sm")
