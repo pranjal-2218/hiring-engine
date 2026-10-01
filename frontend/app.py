@@ -3,13 +3,14 @@ frontend/app.py  —  Intelligent Hiring Engine UI
 """
 from __future__ import annotations
 import time
+import os
 import httpx
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-API = "http://localhost:8000/api/v1"
+API = os.getenv("API_URL", "http://localhost:8000/api/v1")
 
 st.set_page_config(page_title="Hiring Engine", page_icon="🧠", layout="wide")
 
