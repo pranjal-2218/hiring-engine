@@ -16,16 +16,7 @@ services:
       - key: API_KEY
         generateValue: true
 
-  # 2. Frontend Streamlit Service
-  - type: web
-    name: hiring-engine-frontend
-    env: docker
-    dockerfilePath: docker/Dockerfile.frontend
-    plan: free
-    envVars:
-      - key: API_URL
-        # If your backend gets a different name/URL on Render, update this value in the dashboard
-        value: "https://hiring-engine-backend.onrender.com/api/v1"
+
 
 databases:
   # 3. PostgreSQL Database
