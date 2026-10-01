@@ -1,3 +1,8 @@
+[project]
+name = "hiring-engine"
+version = "0.1.0"
+description = "Hiring Engine"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
