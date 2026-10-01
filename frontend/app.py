@@ -51,6 +51,14 @@ def post(path, json_data=None, files=None, timeout=30):
         st.error(f"API error: {e}"); return None
 
 
+def delete(path, timeout=10):
+    try:
+        r = httpx.delete(f"{API}{path}", timeout=timeout)
+        r.raise_for_status(); return True
+    except Exception as e:
+        st.error(f"API error: {e}"); return False
+
+
 st.markdown('<div class="header"><h1>🧠 Intelligent Hiring Engine</h1>'
             '<p>Explainable AI Resume Screening + Candidate Fit Prediction</p></div>',
             unsafe_allow_html=True)
@@ -64,6 +72,15 @@ icon = "🟢" if health.get("status") == "healthy" else "🔴"
 st.sidebar.markdown(f"{icon} API: `{health.get('status','offline')}`")
 st.sidebar.markdown("---\n**Ranking Weights**")
 st.sidebar.markdown("- Semantic: **40%**\n- ML Score: **35%**\n- Skills: **15%**\n- Experience: **10%**")
+
+st.sidebar.markdown("---")
+if st.sidebar.button("🗑️ Clear All Data", help="Delete all resumes and jobs", type="secondary"):
+    with st.spinner("Wiping database..."):
+        for r in (get("/resumes/") or []): delete(f"/resumes/{r['resume_id']}")
+        for j in (get("/jobs/") or []): delete(f"/jobs/{j['jd_id']}")
+    st.sidebar.success("All data cleared!")
+    time.sleep(1)
+    st.rerun()
 
 
 # ── Page 1: Upload Resumes ────────────────────────────────────────────────────
