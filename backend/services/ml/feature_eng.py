@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 
 from backend.models.resume import Education, EducationLevel, ParsedResume
 from backend.models.ranking import (
@@ -54,7 +54,7 @@ class FeatureEngineer:
         features = fe.compute(resume, jd, semantic_sim=0.78)
     """
 
-    def __init__(self, embedding_model: SentenceTransformer):
+    def __init__(self, embedding_model: TextEmbedding):
         self.emb_model = embedding_model
 
     def compute(
@@ -242,9 +242,11 @@ class FeatureEngineer:
         last_role = resume.experience[0].role
         if not last_role or not jd.title:
             return 0.0
-        embs = self.emb_model.encode(
-            [last_role, jd.title], normalize_embeddings=True
-        )
+        embeddings = list(self.emb_model.embed([last_role, jd.title]))
+        emb_arr = np.array(embeddings)
+        norms = np.linalg.norm(emb_arr, axis=1, keepdims=True)
+        norms[norms == 0] = 1
+        embs = emb_arr / norms
         return float(max(0.0, np.dot(embs[0], embs[1])))
 
     # ── Education Features ────────────────────────────────────────────────────

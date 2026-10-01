@@ -17,7 +17,7 @@ import faiss
 import numpy as np
 from cachetools import LRUCache
 from loguru import logger
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
 
 from backend.core.config import get_settings
 from backend.models.resume import ParsedResume
@@ -40,9 +40,11 @@ class EmbeddingService:
 
     def __init__(self, model_name: Optional[str] = None):
         model_name = model_name or settings.EMBEDDING_MODEL
+        if model_name == "all-MiniLM-L6-v2":
+            model_name = "sentence-transformers/all-MiniLM-L6-v2"
         logger.info(f"Loading embedding model: {model_name}")
-        self.model = SentenceTransformer(model_name)
-        self.embedding_dim = self.model.get_sentence_embedding_dimension()
+        self.model = TextEmbedding(model_name=model_name)
+        self.embedding_dim = 384
         self._faiss_index: Optional[faiss.IndexFlatIP] = None
         self._index_id_map: list[UUID] = []   # position -> resume_id
 
@@ -54,22 +56,20 @@ class EmbeddingService:
         if cache_key in _embedding_cache:
             return _embedding_cache[cache_key]
 
-        embedding = self.model.encode(
-            text,
-            normalize_embeddings=True,  # L2 normalize → cosine sim = dot product
-            show_progress_bar=False,
-        )
+        embedding = list(self.model.embed([text]))[0]
+        norm = np.linalg.norm(embedding)
+        if norm > 0:
+            embedding = embedding / norm
         _embedding_cache[cache_key] = embedding
         return embedding
 
     def embed_batch(self, texts: list[str]) -> np.ndarray:
         """Batch embedding with progress bar for large sets."""
-        return self.model.encode(
-            texts,
-            batch_size=settings.EMBEDDING_BATCH_SIZE,
-            normalize_embeddings=True,
-            show_progress_bar=len(texts) > 10,
-        )
+        embeddings = list(self.model.embed(texts, batch_size=settings.EMBEDDING_BATCH_SIZE))
+        emb_arr = np.array(embeddings)
+        norms = np.linalg.norm(emb_arr, axis=1, keepdims=True)
+        norms[norms == 0] = 1
+        return emb_arr / norms
 
     # ── Resume / JD Text Builders ──────────────────────────────────────────────
 

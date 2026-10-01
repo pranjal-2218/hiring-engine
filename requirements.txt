@@ -7,11 +7,8 @@ python-multipart==0.0.6
 httpx==0.25.2
 
 # ─── NLP / Embeddings ────────────────────────────────────────────────────────
-sentence-transformers==2.2.2
-huggingface-hub==0.21.4
+fastembed==0.2.7
 spacy==3.8.2
-transformers==4.35.2
-torch==2.2.2
 en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl
 
 # ─── PDF Parsing ─────────────────────────────────────────────────────────────
