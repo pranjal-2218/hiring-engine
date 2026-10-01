@@ -115,29 +115,43 @@ hiring-engine/
 └── requirements.txt
 ```
 
-## 🚀 Quick Start
+## 🌐 Live Deployment (Cloud)
+
+- **Frontend (Streamlit Cloud):** `[https://hiring-engine.streamlit.app/]`
+- **Backend API (Render):** `[Insert Render URL Here]` / [Interactive Docs](`[https://hiring-engine-backend.onrender.com]`/docs)
+
+## 🚀 Run Frontend Locally (Connecting to Cloud API)
+
+Since the backend and database are hosted on Render, you can easily run just the UI locally and connect it to your live API!
 
 ```bash
-# 1. Clone and setup
-git clone https://github.com/yourname/hiring-engine
+# 1. Clone and install dependencies
+git clone https://github.com/pranjal-2218/hiring-engine
 cd hiring-engine
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# 2. Setup environment
+# 2. Run Streamlit with the API_URL environment variable
+API_URL="https://YOUR_RENDER_URL_HERE.onrender.com/api/v1" streamlit run frontend/app.py
+```
+*(Your browser will open to `http://localhost:8501`. Any edits you make to the UI code will reflect instantly!)*
+
+## 🛠️ Full Local Setup (Backend + DB + Frontend)
+*(If you want to run the entire system on your machine)*
+
+```bash
+# 1. Setup environment
 cp .env.example .env
-# Edit .env with your API keys
+# Edit .env with your API keys and your local/remote DATABASE_URL
 
-# 3. Initialize DB
+# 2. Initialize DB and Train Model
 python scripts/setup_db.py
-
-# 4. Train the ranking model (generates + saves synthetic data automatically)
 python ml/training/train_ranker.py
 
-# 5. Run backend
+# 3. Run backend
 uvicorn backend.main:app --reload --port 8000
 
-# 6. Run frontend (new terminal)
+# 4. Run frontend (new terminal)
 streamlit run frontend/app.py
 
 # OR: Docker Compose
