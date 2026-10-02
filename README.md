@@ -202,7 +202,7 @@ Final Score = 0.25 × Semantic_Similarity
 | **MRR** | 1.0000 |
 | **Recommendation Accuracy** | **93.27%** |
 
-Metrics evaluated on a held-out validation set of 1,500 candidates across 30 job descriptions.
+Metrics evaluated on a held-out validation set of 1,500 candidates across 30 job descriptions. Evaluated on a synthetic dataset; real-world performance may differ
 
 ### Model Configuration
 
@@ -242,6 +242,6 @@ XGBRanker(
 | `POST` | `/api/v1/ranking/rank` | Rank candidates for a JD |
 | `GET` | `/api/v1/analytics/dashboard` | Aggregate resume analytics |
 
-Interactive docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+Interactive docs: [https://hiring-engine-backend.onrender.com/docs](https://hiring-engine-backend.onrender.com/docs)
 
 ---
