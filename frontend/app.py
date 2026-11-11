@@ -71,7 +71,7 @@ health = get("/health") or {}
 icon = "🟢" if health.get("status") == "healthy" else "🔴"
 st.sidebar.markdown(f"{icon} API: `{health.get('status','offline')}`")
 st.sidebar.markdown("---\n**Ranking Weights**")
-st.sidebar.markdown("- Semantic: **40%**\n- ML Score: **35%**\n- Skills: **15%**\n- Experience: **10%**")
+st.sidebar.markdown("- Semantic: **25%**\n- ML Score: **45%**\n- Skills: **20%**\n- Experience: **10%**")
 
 st.sidebar.markdown("---")
 if st.sidebar.button("🗑️ Clear All Data", help="Delete all resumes and jobs", type="secondary"):
